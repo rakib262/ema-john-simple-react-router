@@ -1,20 +1,10 @@
 
-import * as firebase from 'firebase/app';
-import 'firebase/auth';
-import firebaseConfig from './firebase.config';
-import { getAuth, signInWithPopup, 
-        GoogleAuthProvider, signOut,
-        createUserWithEmailAndPassword, 
-        signInWithEmailAndPassword, 
-        updateProfile, FacebookAuthProvider} from "firebase/auth";
 import { useContext, useState } from 'react';
 import { userContext } from '../../App';
 import { useHistory } from 'react-router-dom';
 import { useLocation } from 'react-router-dom/cjs/react-router-dom.min';
+import { createUserEmailAndPassword, handleFbSignIn, handleGoogleSignIn, handleSignOut, initializeLoginFrameWork, signInEmailAndPassword } from './loginManager';
 
-
-
-firebase.initializeApp(firebaseConfig);
 
 function Login() { 
 
@@ -27,71 +17,32 @@ function Login() {
       photo: ''
   })
 
+  initializeLoginFrameWork();
+
   const [loggedInUser, setLoggedInUser] = useContext(userContext);
   const history = useHistory();
   const location = useLocation();
   const { from } = location.state || { from: { pathname: "/" } };
 
-  const googleProvider = new GoogleAuthProvider();
-  const fbProvider = new FacebookAuthProvider();
+  const googleSignIn = () => {
+    handleGoogleSignIn()
+    .then((res) => {
+      handleResponse(res, true);
+    });
+  }
 
-  const handleSignIn = () => {
-    const auth = getAuth();
-    signInWithPopup(auth, googleProvider)
-    .then(result => {
-      const {displayName, email, photoURL} =result.user;
-      const signedInUser = {
-        isSignedIn: true,
-        name:displayName,
-        email: email,
-        photo: photoURL
-      }
-      setUser(signedInUser);
-      // console.log(displayName, email, photoURL)
-    }).catch(err => {
-      console.error(err);
-      console.error(err.message);
+  const fbSignIn = () => {
+    handleFbSignIn()
+    .then((res) => {
+      handleResponse(res, true);
+    });
+  }
+
+  const signOut = () => {
+    handleSignOut()
+    .then((res) => {
+      handleResponse(res, false);
     })
-  }
-
-  const handleFbSignIn = () => {
-    const auth = getAuth();
-    signInWithPopup(auth, fbProvider)
-      .then((result) => {
-        // The signed-in user info.
-        const user = result.user;
-        console.log(user)
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.email;
-        // The AuthCredential type that was used.
-        const credential = FacebookAuthProvider.credentialFromError(error);
-
-        // ...
-      });
-  }
-
-  const handleSignOut = () => {
-    const auth = getAuth();
-    signOut(auth)
-    .then(result => {
-    const signOutUser = {
-      isSignedIn: false,
-      name: '',
-      email: '',
-      photo: '',
-      success: false,
-      error: ''
-    }
-    setUser(signOutUser);
-  }).catch((error) => {
-    console.log(error.message)
-  });
-    console.log(" sign out clicked");
   }
 
   const handleBlur = (e) => {
@@ -114,63 +65,35 @@ function Login() {
 
   const handleSubmit = (e) => {
     if(newUser && user.email && user.password){
-      const auth = getAuth();
-      createUserWithEmailAndPassword(auth, user.email, user.password)
-      .then((userCredential) => {
-        const newUserInfo = {...user};
-        newUserInfo.error = '';
-        newUserInfo.success = true;
-        setUser(newUserInfo);
-        updateUserName(user.name)
-      })
-      .catch((error) => {
-        const newUserInfo = {...user};
-        newUserInfo.error = error.message;
-        newUserInfo.success = false;
-        setUser(newUserInfo);
+      createUserEmailAndPassword(user.name, user.email, user.password)
+      .then((res) => {
+        handleResponse(res, true);
       });
     }
     if(!newUser && user.email && user.password){
-      const auth = getAuth();
-      signInWithEmailAndPassword(auth, user.email, user.password)
-        .then((userCredential) => {
-          const newUserInfo = {...user};
-          newUserInfo.error = '';
-          newUserInfo.success = true;
-          setUser(newUserInfo);
-          setLoggedInUser(newUserInfo);
-          history.replace(from);
-          console.log('sign in user', userCredential.user);
-        })
-        .catch((error) => {
-          const newUserInfo = {...user};
-          newUserInfo.error = error.message;
-          newUserInfo.success = false;
-          setUser(newUserInfo);
-        });
+      signInEmailAndPassword(user.email, user.password)
+      .then((res) => {
+       handleResponse(res, true);
+      });
     }
     e.preventDefault();
   }
 
-  const updateUserName = (name) => {
-    const auth = getAuth();
-    updateProfile(auth.currentUser, {
-      displayName:name
-    }).then((res) => {
-      console.log('user name update successfully')
-    }).catch((error) => {
-      console.log(error);
-    });
+  const handleResponse = (res, redirect) => {
+    setUser(res);
+    setLoggedInUser(res);
+    if(redirect){
+      history.replace(from);
+    }
   }
-    
   return (
     <div style={{textAlign: 'center'}}>
       {
-        user.isSignedIn? <button onClick={handleSignOut}>sign out</button>:
-        <button onClick={handleSignIn}>Sign In</button>
+        user.isSignedIn? <button onClick={signOut}>sign out</button>:
+        <button onClick={googleSignIn}>Sign In</button>
       }
       <br />
-      <button onClick={handleFbSignIn}>Sign In Using Facebook</button>
+      <button onClick={fbSignIn}>Sign In Using Facebook</button>
      {
        user.isSignedIn && <div>
          <p>Welcome {user.name}!</p>
