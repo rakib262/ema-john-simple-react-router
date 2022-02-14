@@ -3,7 +3,11 @@ import { useContext, useState } from 'react';
 import { userContext } from '../../App';
 import { useHistory } from 'react-router-dom';
 import { useLocation } from 'react-router-dom/cjs/react-router-dom.min';
-import { createUserEmailAndPassword, handleFbSignIn, handleGoogleSignIn, handleSignOut, initializeLoginFrameWork, signInEmailAndPassword } from './loginManager';
+import { createUserEmailAndPassword, handleFbSignIn, handleGoogleSignIn, handleSignOut,
+   initializeLoginFrameWork, resetPassword, signInEmailAndPassword } from './loginManager';
+import {Button, Grid,Paper, TextField} from '@material-ui/core'
+import facebook from '../images/fb.png';
+import google from '../images/google.png';
 
 
 function Login() { 
@@ -86,6 +90,11 @@ function Login() {
       history.replace(from);
     }
   }
+  const paperStyle = {
+    padding: 20,
+    width:400,
+    margin:'20px auto'
+  }
   return (
     <div style={{textAlign: 'center'}}>
       {
@@ -102,24 +111,70 @@ function Login() {
        </div>
      }
      <h1>Our own Athentication </h1>
-     <input type="checkbox" name="newUser" onChange={() => setNewUser(!newUser)} id="" />
-     <label htmlFor="newUser">New User Sign up</label>
+     {/* <input type="checkbox" name="newUser" onChange={() => setNewUser(!newUser)} id="" />
+     <label htmlFor="newUser">{newUser? 'login' : 'create account'}</label> */}
+     <p>{newUser? 'You have an Account? ' : 'You dont have an Account? '} 
+      <a href="#" onClick={() => setNewUser(!newUser)}>{newUser? 'login' : 'create account'}</a>
+     </p>
      <form onClick={handleSubmit}>
        {
-         newUser && <input onBlur={handleBlur} type="text" name="name" placeholder="Enter Your Name"/>
+         <h3>{newUser? 'Create Account' : 'Login'}</h3>
        }
-       <br/>
-       <input onBlur={handleBlur} type="email" name="email" placeholder="Enter Your Email" required/>
+       {
+         newUser && <div><input onBlur={handleBlur} type="text" name="name" placeholder="Enter Your Name"/></div>
+       }
+       
+       <input  onBlur={handleBlur} type="email" name="email" placeholder="Enter Your Email" required/>
        <br />
-       <input onBlur={handleBlur} type="password" name="password" placeholder="Enter your password" required/>
+       <input  onBlur={handleBlur} type="password" name="password" placeholder="Enter your password" required/>
        <br />
-       <input type="submit" value="submit" />
+       {
+       !newUser && <button onClick={() => resetPassword(user.email)}>Forget or Reset Password</button>
+       }
+      <br />
+       <input type="submit" value={newUser ? 'sign up' : 'sign in'} />
      </form>
-
      <p style={{color: 'red'}}>{user.error}</p>
      {
        user.success && <p style={{color: 'green'}}>User {newUser? 'created' : 'Logged In'} successfully</p>
      }
+     
+     <Grid>
+        <Paper elevation={10} style={paperStyle}>
+          
+          <from onClick={handleSubmit}>
+            <h3 style={{textAlign: 'left'}}>{newUser? 'Create Account' : 'Login'}</h3>
+            {
+              newUser && <div>
+                <TextField onBlur={handleBlur} type="text" name="name" label='First name' placeholder='Enter First name' fullWidth required></TextField>
+                <TextField onBlur={handleBlur} type="text" name="name" label='Last name' placeholder='Enter Last name' fullWidth required></TextField>
+              </div>
+            }
+            <TextField onBlur={handleBlur} type="email" name="email" label='Email' placeholder='Enter Username or Email' fullWidth required></TextField>
+            <TextField onBlur={handleBlur} type="password" name="password" label='Password' placeholder='Enter Password' fullWidth required></TextField>
+            {
+              !newUser && <div style={{marginTop:'15px',textAlign: 'right', fontSize:'14px'}}>
+                <a href="#" onClick={() => resetPassword(user.email)} >Forgot Password</a></div>
+            }
+            {
+              newUser && <TextField onBlur={handleBlur} type="password" name="password" label='Confirm Password' placeholder='Enter Confirm Password' fullWidth required></TextField>
+            }
+            <Button style={{marginTop:'15px'}} type='submit' color='primary' variant="contained" fullWidth>{newUser ? 'Create an account' : 'Login'}</Button>
+          </from>
+
+          <p style={{marginTop:'10px'}}>{newUser? 'You have an Account? ' : 'You dont have an Account? '} 
+          <a href="#" onClick={() => setNewUser(!newUser)}>{newUser? 'Login' : 'Create an account'}</a>
+          </p>
+
+          <p>Or</p>
+
+          <Button onClick={fbSignIn} style={{border: '1px solid black', borderRadius:'30px'}} type='submit' fullWidth>
+            <img style={{width:'25px', height:'25px', marginRight:'15px'}} src={facebook} alt="" /> continue with facebook</Button>
+
+          <Button onClick={googleSignIn} style={{marginTop:'15px', border: '1px solid black', borderRadius:'30px'}} type='submit' fullWidth>
+            <img style={{width:'25px', height:'25px', marginRight:'15px'}} src={google} alt="" /> continue with google</Button>
+        </Paper>
+     </Grid>
     </div>
   );
 }

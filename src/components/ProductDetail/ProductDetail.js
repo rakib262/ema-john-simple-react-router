@@ -6,14 +6,18 @@ const ProductDetail = () => {
     const [product, setProduct] = useState({})
     console.log(product)
     useEffect(() => {
-        const url = `https://raw.githubusercontent.com/ProgrammingHero1/ema-john-simple-resources/master/fakeData/products.JSON/${productkey}`
+        const url = `https://thawing-depths-48281.herokuapp.com/product/${productkey}`
         fetch(url)
         .then(res => res.json())
-        .then(data => setProduct(data))
-    },[])
+        .then(data => {
+            console.log(data)
+            setProduct(data)
+            
+        })
+    },[productkey])
     return (
         <div>
-            <h1>This is produck {productkey}</h1>
+            <h1>This is product {productkey}</h1>
             <h1>{product.name}</h1>
         </div>
     );

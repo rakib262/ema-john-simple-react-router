@@ -5,7 +5,8 @@ import { getAuth, signInWithPopup,
         GoogleAuthProvider, signOut,
         createUserWithEmailAndPassword, 
         signInWithEmailAndPassword, 
-        updateProfile, FacebookAuthProvider} from "firebase/auth";
+        updateProfile, FacebookAuthProvider, sendPasswordResetEmail, sendEmailVerification
+      } from "firebase/auth";
 
 export const initializeLoginFrameWork = () => {
     // if(firebase.apps.length === 0){
@@ -22,7 +23,7 @@ export const handleGoogleSignIn = () => {
       const {displayName, email, photoURL} =result.user;
       const signedInUser = {
         isSignedIn: true,
-        name:displayName,
+        name: displayName,
         email: email,
         photo: photoURL,
         success: true
@@ -80,7 +81,8 @@ export const handleGoogleSignIn = () => {
       const newUserInfo = res.user;
       newUserInfo.error = '';
       newUserInfo.success = true;
-      updateUserName(name);
+      updateUserName(res.user.name);
+      emailVerify();
       return newUserInfo;
     })
     .catch((error) => {
@@ -118,4 +120,27 @@ export const handleGoogleSignIn = () => {
     }).catch((error) => {
       console.log(error);
     });
+  }
+
+const emailVerify = () => {
+  const auth = getAuth();
+  sendEmailVerification(auth.currentUser)
+    .then(() => {
+      // Email verification sent!
+      // ...
+    });
+}
+
+ export const resetPassword = (email) => {
+    const auth = getAuth();
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        // Password reset email sent!
+        // ..
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // ..
+      });
   }

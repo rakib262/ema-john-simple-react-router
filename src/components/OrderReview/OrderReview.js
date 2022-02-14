@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import useProducts from '../../hooks/useProducts';
 import useCart from '../../hooks/useCart';
 import Cart from '../Cart/Cart';
@@ -18,8 +18,8 @@ const OrderReview = () => {
     }
 
     const handleProceedCheckout = () => {
-        // setCart([]);
-        // clearTheCart();
+        setCart([]);
+        clearTheCart();
         history.push('/shipment');
     }
 
